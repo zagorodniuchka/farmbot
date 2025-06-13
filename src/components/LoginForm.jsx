@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { loginFarmbot } from "../api/farmbotApi";
-import { connectToFarmBot } from "@/farmbotMqqt.js";
+import { connectToFarmBot } from "../farmbotMqqt.js";
 import { useNavigate } from 'react-router-dom';
 
 export default function LoginForm({ onLogin }) {
@@ -80,36 +80,14 @@ export default function LoginForm({ onLogin }) {
                 throw new Error("Bot not connected");
             }
 
-            // Тестируем движение с разными координатами
-            const testCoordinates = [
-                { x: 100, y: 200, z: 0 }, // Уменьшили Y до 200
-                { x: 50, y: 100, z: 0 },  // Ещё более безопасные координаты
-            ];
+            if (onLogin) onLogin(jwt, botId, bot);
 
-            for (const coords of testCoordinates) {
-                try {
-                    await bot.move('move_absolute', coords, { speed: 100 });
-                    setStatus((prev) => prev + ` ✅ Moved to x:${coords.x}, y:${coords.y}, z:${coords.z}`);
-                    await new Promise(resolve => setTimeout(resolve, 2000)); // Задержка для проверки
-                } catch (moveErr) {
-                    setStatus((prev) => prev + ` ❌ Move to x:${coords.x}, y:${coords.y}, z:${coords.z} failed: ${moveErr.message}`);
-                    console.error('❌ Move error:', moveErr);
-                }
-            }
-
-            // Запрос статуса после теста
-            const updatedPosition = await bot.requestStatus();
-            setCurrentPosition(updatedPosition);
-            setStatus((prev) => prev + ` 📍 Final position: x:${updatedPosition.x}, y:${updatedPosition.y}, z:${updatedPosition.z}`);
-
-            if (onLogin) onLogin(jwt, botId);
-
-            // setTimeout(() => {
-            //     navigate('/control-panel');
-            // }, 1500);
+            setTimeout(() => {
+                navigate('/control-panel');
+            }, 1500);
         } catch (err) {
-            setError(`❌ ${err.message || "Failed to login or connect to bot"}`);
-            console.error("❌ Error:", err);
+            setError(`�19 ${err.message || "Failed to login or connect to bot"}`);
+            console.error("�19 Error:", err);
         }
     };
 

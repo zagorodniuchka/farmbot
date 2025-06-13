@@ -1,18 +1,14 @@
 import ControlPanelHeader from '../components/ControlPanelHeader';
-import MovementControls from '../components/MovementControls';
-import RelativeMovement from '../components/RelativeMovement';
-import Peripherals from '../components/Peripherals';
-import CreatePointForm from '../components/CreatePointForm';
+import MoveCommandForm from '../components/MoveCommandForm';
 import StatusMessage from '../components/StatusMessage';
-
+import {useBot} from "@/BotContext.jsx";
 const FarmBotControlPanelPage = () => {
+    const bot = useBot();
+
     return (
         <div className="container mx-auto p-4">
             <ControlPanelHeader />
-            <MovementControls />
-            <RelativeMovement />
-            <Peripherals />
-            <CreatePointForm />
+            <MoveCommandForm bot={bot} />
             <StatusMessage />
         </div>
     );

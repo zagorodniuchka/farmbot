@@ -31,7 +31,7 @@ export const connectToFarmBot = async (jwt, botId, email, mqttWsUrl, onMessageCa
 
                 client.subscribe([statusTopic, logsTopic, fromDeviceTopic], (err) => {
                     if (err) {
-                        console.error('❌ Failed to subscribe to topics:', err);
+                        console.error('�19 Failed to subscribe to topics:', err);
                         reject(new Error(`Failed to subscribe: ${err.message}`));
                     } else {
                         console.log(`📡 Subscribed to topics: ${statusTopic}, ${logsTopic}, ${fromDeviceTopic}`);
@@ -41,7 +41,7 @@ export const connectToFarmBot = async (jwt, botId, email, mqttWsUrl, onMessageCa
             });
 
             client.on('error', (err) => {
-                console.error('❌ MQTT Error:', err);
+                console.error('�19 MQTT Error:', err);
                 reject(new Error(`MQTT connection failed: ${err.message}`));
             });
 
@@ -68,7 +68,7 @@ export const connectToFarmBot = async (jwt, botId, email, mqttWsUrl, onMessageCa
                         }
                     }
                 } catch (err) {
-                    console.error('❌ Error processing MQTT message:', err);
+                    console.error('�19 Error processing MQTT message:', err);
                 }
             });
 
@@ -106,7 +106,7 @@ export const connectToFarmBot = async (jwt, botId, email, mqttWsUrl, onMessageCa
 
                     client.publish(commandTopic, JSON.stringify(command), { qos: 1 }, (err) => {
                         if (err) {
-                            console.error('❌ Failed to send move command:', err);
+                            console.error('�19 Failed to send move command:', err);
                             reject(err);
                         } else {
                             console.log('🚜 Move command sent:', command);
@@ -167,7 +167,7 @@ export const connectToFarmBot = async (jwt, botId, email, mqttWsUrl, onMessageCa
                             const payload = JSON.parse(message.toString());
                             handler(topic, payload);
                         } catch (err) {
-                            console.error("❌ Failed to parse status response", err);
+                            console.error("�19 Failed to parse status response", err);
                         }
                     };
 
@@ -188,7 +188,7 @@ export const connectToFarmBot = async (jwt, botId, email, mqttWsUrl, onMessageCa
             };
         });
     } catch (err) {
-        console.error('❌ Failed to connect to FarmBot:', err);
+        console.error('�19 Failed to connect to FarmBot:', err);
         throw err;
     }
 };

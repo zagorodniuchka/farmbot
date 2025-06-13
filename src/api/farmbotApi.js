@@ -21,7 +21,7 @@ export async function loginFarmbot(email, password) {
         }
         return jwt;
     } catch (err) {
-        console.error("❌ API Error:", err.response?.data || err.message);
+        console.error("�19 API Error:", err.response?.data || err.message);
         throw new Error(err.response?.data?.error || "Failed to login");
     }
 }
