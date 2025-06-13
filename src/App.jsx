@@ -1,12 +1,15 @@
-import { AuthProvider } from "./context/AuthContext.jsx";
-import LoginForm from "./components/LoginForm";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LoginForm from '@/components/LoginForm.jsx';
+import {FarmBotControlPanel} from "@/pages/ControlPanelPage.jsx";
 
-function App() {
+export const App = () => {
     return (
-        <AuthProvider>
-            <LoginForm />
-        </AuthProvider>
+        <Router>
+            <Routes>
+                <Route path="/" element={<LoginForm />} />
+                <Route path="/control-panel" element={<FarmBotControlPanel />} />
+            </Routes>
+        </Router>
     );
-}
-
-export default App;
+};

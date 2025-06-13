@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { loginFarmbot } from "../api/farmbotApi";
 import { connectToFarmBot } from "@/farmbotMqqt.js";
+import { useNavigate } from 'react-router-dom';
 
 export default function LoginForm({ onLogin }) {
     const [token, setToken] = useState('');
@@ -8,6 +9,9 @@ export default function LoginForm({ onLogin }) {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [status, setStatus] = useState('');
+    const [botId, setBotId] = useState(null);
+    const navigate = useNavigate();
+
 
     // Минималистичный декодер JWT, чтобы не париться с импортами
     function decodeJwt(token) {
@@ -40,6 +44,7 @@ export default function LoginForm({ onLogin }) {
 
             const decoded = decodeJwt(jwt);
             const botId = decoded.bot;
+            setBotId(decoded.bot);
             if (!botId) throw new Error("Bot ID not found in token");
 
             console.log("🤖 Bot ID:", botId);
@@ -55,6 +60,10 @@ export default function LoginForm({ onLogin }) {
             setError(`❌ ${err.message || "Failed to login"}`);
             console.error(err);
         }
+
+        setTimeout(() => {
+            navigate('/control-panel');
+        }, 1500);
     };
 
     return (
@@ -85,7 +94,9 @@ export default function LoginForm({ onLogin }) {
             )}
 
             {status && (
-                <div className="text-green-600 text-sm">{status}</div>
+                <div className="mt-4 p-2 bg-green-100 text-green-700 rounded">
+                    {status} 🤖 Bot ID: {botId}
+                </div>
             )}
 
             <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700 transition">
