@@ -10,10 +10,9 @@ export default function LoginForm({ onLogin }) {
     const [error, setError] = useState('');
     const [status, setStatus] = useState('');
     const [botId, setBotId] = useState(null);
+    const [currentPosition, setCurrentPosition] = useState({ x: 0, y: 529.4, z: 0 });
     const navigate = useNavigate();
 
-
-    // Минималистичный декодер JWT, чтобы не париться с импортами
     function decodeJwt(token) {
         try {
             const base64Url = token.split('.')[1];
@@ -37,33 +36,81 @@ export default function LoginForm({ onLogin }) {
         setStatus('');
 
         try {
+            console.log(`🔍 Attempting to login with email: ${email}`);
             const jwt = await loginFarmbot(email, password);
             setToken(jwt);
             setStatus("✅ Token created successfully");
             console.log("🔐 JWT:", jwt);
 
             const decoded = decodeJwt(jwt);
+            console.log("📜 Decoded JWT:", decoded);
             const botId = decoded.bot;
-            setBotId(decoded.bot);
+            const mqttWsUrl = decoded.mqtt_ws;
+            setBotId(botId);
             if (!botId) throw new Error("Bot ID not found in token");
+            if (!mqttWsUrl) throw new Error("MQTT WebSocket URL not found in token");
 
             console.log("🤖 Bot ID:", botId);
+            console.log("📡 MQTT WebSocket URL:", mqttWsUrl);
 
-            connectToFarmBot(jwt, botId, email,(topic, message) => {
+            const bot = await connectToFarmBot(jwt, botId, email, mqttWsUrl, (topic, message) => {
                 console.log("📥 Received:", topic, message);
-                setStatus(`📡 Connected. Topic: ${topic}`);
+                if (topic === `bot/${botId}/from_device`) {
+                    setStatus(`📡 Command response: ${JSON.stringify(message)}`);
+                    if (message.location_data) {
+                        setCurrentPosition({
+                            x: message.location_data.position.x || 0,
+                            y: message.location_data.position.y || 0,
+                            z: message.location_data.position.z || 0,
+                        });
+                    }
+                } else if (topic === `bot/${botId}/status`) {
+                    setStatus(`📡 Connected. Topic: ${topic}`);
+                    if (message.location_data) {
+                        setCurrentPosition({
+                            x: message.location_data.position.x || 0,
+                            y: message.location_data.position.y || 0,
+                            z: message.location_data.position.z || 0,
+                        });
+                    }
+                }
             });
+
+            if (!bot || !bot.connected) {
+                throw new Error("Bot not connected");
+            }
+
+            // Тестируем движение с разными координатами
+            const testCoordinates = [
+                { x: 100, y: 200, z: 0 }, // Уменьшили Y до 200
+                { x: 50, y: 100, z: 0 },  // Ещё более безопасные координаты
+            ];
+
+            for (const coords of testCoordinates) {
+                try {
+                    await bot.move('move_absolute', coords, { speed: 100 });
+                    setStatus((prev) => prev + ` ✅ Moved to x:${coords.x}, y:${coords.y}, z:${coords.z}`);
+                    await new Promise(resolve => setTimeout(resolve, 2000)); // Задержка для проверки
+                } catch (moveErr) {
+                    setStatus((prev) => prev + ` ❌ Move to x:${coords.x}, y:${coords.y}, z:${coords.z} failed: ${moveErr.message}`);
+                    console.error('❌ Move error:', moveErr);
+                }
+            }
+
+            // Запрос статуса после теста
+            const updatedPosition = await bot.requestStatus();
+            setCurrentPosition(updatedPosition);
+            setStatus((prev) => prev + ` 📍 Final position: x:${updatedPosition.x}, y:${updatedPosition.y}, z:${updatedPosition.z}`);
 
             if (onLogin) onLogin(jwt, botId);
 
+            // setTimeout(() => {
+            //     navigate('/control-panel');
+            // }, 1500);
         } catch (err) {
-            setError(`❌ ${err.message || "Failed to login"}`);
-            console.error(err);
+            setError(`❌ ${err.message || "Failed to login or connect to bot"}`);
+            console.error("❌ Error:", err);
         }
-
-        setTimeout(() => {
-            navigate('/control-panel');
-        }, 1500);
     };
 
     return (
@@ -78,6 +125,7 @@ export default function LoginForm({ onLogin }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
                 className="w-full p-2 border rounded"
             />
             <input
@@ -86,6 +134,7 @@ export default function LoginForm({ onLogin }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="current-password"
                 className="w-full p-2 border rounded"
             />
 
@@ -95,7 +144,7 @@ export default function LoginForm({ onLogin }) {
 
             {status && (
                 <div className="mt-4 p-2 bg-green-100 text-green-700 rounded">
-                    {status} 🤖 Bot ID: {botId}
+                    {status} 🤖 Bot ID: {botId} | Current Position: x:{currentPosition.x}, y:{currentPosition.y}, z:{currentPosition.z}
                 </div>
             )}
 
